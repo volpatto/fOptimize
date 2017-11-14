@@ -12,17 +12,12 @@ set ylabel 'y'
 #set tics font ", 10"
 
 set autoscale
-set xrange [-4:3]
-#set yrange [-10:]
+set xrange [-100:100]
+set yrange [-100:100]
 
 set grid
+set view 30,60,1
+set contour base
+set cntrparam levels auto 20
 
-f1(x) = 3.0*x**4.0 - 4.0*x**3.0 + 1.0
-df1(x) = 12.0*x**3.0 - 12.0*x**2.0
-ddf1(x) = 36.0*x**2.0 - 24.0*x
-f2(x) = (1.0/4.0)*x**4 - (5.0/3.0)*x**3.0 - 6.0*x**2.0 + 19.0*x - 7.0
-df2(x) = x**3.0 - 5.0*x**2.0 - 12.0*x + 19.0
-ddf2(x) = 3.0*x**2.0 - 10.0*x - 12.0
-
-set style data points
-plot f1(x) title "f(x)" lw 2
+splot x**2.0+y**2.0 + 2.0*x*y
