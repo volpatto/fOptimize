@@ -6,5 +6,13 @@ given by a Fortran function environment.
 
 The routines has only academic purpose. Further applications will need improvements, of course.
 
+## Features
+
+* One-dimensional optimization methods:
+  + Bissection
+  + Golden Ratio
+  + Newton
+  + Secant
+
 ## Contact
 Diego T. Volpatto: volpatto@lncc.br
