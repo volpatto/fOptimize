@@ -468,4 +468,65 @@ module mOptimize
 
         endsubroutine
 
+        subroutine unconstBox(x0,delta,f,itol,ifac,ikmax)
+
+            implicit none
+
+            real*8, dimension(:), intent(in) :: x0
+            real*8, dimension(:), intent(inout) :: delta
+            real*8, intent(in), optional :: itol, ifac
+            integer, intent(in), optional :: ikmax
+            interface
+                function f(x)
+                    real*8, dimension(:), intent(in) :: x
+                    real*8 :: f
+                endfunction
+            endinterface
+            real*8 :: eps, f_min, f_temp, fac
+            real*8, allocatable :: x_k(:), x_temp(:), x_next(:)
+            integer :: i, j, k, kmax
+
+            eps = 1.d-5; fac = 0.8d0; kmax = 5000
+
+            if (present(itol)) eps = itol
+            if (present(ifac)) fac = ifac 
+            if (present(ikmax)) kmax = ikmax
+
+            if (size(x0).ne.size(delta)) stop "Error: Reductor vector must be same size than x0"
+            if (minval(delta).lt.0.d0) stop "Error: All reductor values must be positive"
+            if (norm2(delta).lt.eps) stop "Error: Provided reductor is too small"
+            if (fac.ge.1.d0) stop "Error: Contraction factor must be lower than 1.0"
+
+            allocate(x_k(size(x0))); x_k = x0
+            allocate(x_temp(size(x0))); allocate(x_next(size(x0)));
+
+            k = 0
+            f_min = f(x_k)
+            do while ((norm2(delta).gt.eps).and.(k.le.kmax))
+                do i=1,size(delta)
+                    do j=1,2
+                        x_temp = x_k
+                        x_temp(i) = x_k(i) + ((-1.d0)**j)*fac*delta(i)
+                        f_temp = f(x_temp)
+                        if (f_temp .lt. f_min) then 
+                            f_min = f_temp
+                            x_next = x_temp
+                        endif
+                    enddo
+                enddo
+                if (all(x_k.eq.x_next)) then
+                    delta = fac*delta
+                else
+                    x_k = x_next
+                endif
+                k = k + 1
+            enddo
+
+            print*, "****** End unconstrained Box method ******"
+            print*, "Iterations =", k 
+            print*, "x_min =", x_k 
+            print*, "f(x_min) =", f(x_k)
+
+        endsubroutine
+
 endmodule
