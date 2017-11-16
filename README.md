@@ -20,6 +20,7 @@ The routines has only academic purpose. Further applications will need improveme
   + Self-scaling Davidon--Fletcher--Powell (DFP)
   + Self-scaling Broyden--Fletcher--Goldfarb--Shanno (BFGS)
   + Self-scaling Broyden family (DFP+BFGS)
+  + Box Method
   
 One can find futher information about the above methods in Classical Optimization books like Luenberger, Nocedal, Bazaraa
 and so on.
