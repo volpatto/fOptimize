@@ -529,4 +529,194 @@ module mOptimize
 
         endsubroutine
 
+        subroutine exploreHJ(x,delta,f,flag)
+
+            implicit none
+
+            real*8, dimension(:), intent(inout) :: x, delta
+            logical, intent(inout) :: flag
+            interface
+                function f(x)
+                    real*8, dimension(:), intent(in) :: x
+                    real*8 :: f
+                endfunction
+            endinterface
+            integer :: i, j
+            real*8 :: eps, f_min, f_temp
+            real*8, allocatable :: x_k(:), x_temp(:)
+
+            flag = .false.
+
+            allocate(x_k(size(x))); x_k = x
+            allocate(x_temp(size(x)))
+            do i=1,size(x)
+                f_min = f(x_k)
+                !print*, "f(x0) =", f(x_k)
+                do j=1,2
+                    x_temp = x_k
+                    !print*, "f(x_temp) =", f(x_temp)
+                    x_temp(i) = x_k(i) + ((-1.d0)**j)*delta(i)
+                    f_temp = f(x_temp)
+                    !print*, "f(x_temp2) =", f(x_temp)
+                    if (f_temp .lt. f_min) then 
+                        f_min = f_temp
+                        x_k = x_temp
+                    endif
+                    !print*, "x_k =", x_k
+                    !print*, "x_temp =", x_temp
+                    !print*, "f(x_k) =", f(x_k)
+                    !print*, "**************************"
+                enddo
+            enddo
+            if (any(x.ne.x_k)) then 
+                flag = .true.
+                x = x_k
+            endif
+            !print*, "flag =", flag
+
+        endsubroutine
+
+        subroutine unconstHookeJeeves(x0,delta,f,itol,ifac,ikmax)
+
+            implicit none
+
+            real*8, dimension(:), intent(in) :: x0
+            real*8, dimension(:), intent(inout) :: delta
+            real*8, intent(in), optional :: itol, ifac
+            integer, intent(in), optional :: ikmax
+            interface
+                function f(x)
+                    real*8, dimension(:), intent(in) :: x
+                    real*8 :: f
+                endfunction
+            endinterface
+            real*8 :: eps, fac
+            real*8, allocatable :: x_k(:), x_prev(:), x_next(:)
+            integer :: k, kmax
+            logical :: flag = .true.
+
+            eps = 1.d-5; fac = 0.5d0; kmax = 5000
+
+            if (present(itol)) eps = itol
+            if (present(ifac)) fac = ifac 
+            if (present(ikmax)) kmax = ikmax
+
+            if (size(x0).ne.size(delta)) stop "Error: Reductor vector must be same size than x0"
+            if (minval(delta).lt.0.d0) stop "Error: All reductor values must be positive"
+            if (norm2(delta).lt.eps) stop "Error: Provided reductor is too small"
+            if (fac.ge.1.d0) stop "Error: Contraction factor must be lower than 1.0"
+
+            allocate(x_k(size(x0))); x_k = x0
+            allocate(x_prev(size(x0))); allocate(x_next(size(x0)));
+
+            k = 0
+            do while (k.le.kmax)
+                x_prev = x_k
+                !print*
+                !print*, "-----------------------------------------"
+                !print*, "k =", k
+                !print*, "x =", x_k
+                !print*, "f(x) =", f(x_k)
+                !print*
+                call exploreHJ(x_k,delta,f,flag)
+                if ((flag .eqv. .false.).or.(f(x_k).gt.f(x_prev))) then
+                    if (norm2(delta).lt.eps) exit
+                    !print*, "Delta"
+                    delta = fac*delta
+                    cycle
+                endif
+                x_next = x_k + (x_k - x_prev)
+                !print*
+                !print*, "x_k =", x_k
+                !print*, "x_prev =", x_prev
+                !print*, "x_k - x_prev =", x_k - x_prev
+                !print*
+                x_k = x_next
+                k = k + 1
+            enddo
+
+            print*, "****** End unconstrained Hooke and Jeeves method ******"
+            print*, "Iterations =", k 
+            print*, "x_min =", x_k 
+            print*, "f(x_min) =", f(x_k)
+
+        endsubroutine
+
+        subroutine unconstHookeJeeves2(x0,delta,f,itol,ifac,ikmax)
+
+            implicit none
+
+            real*8, dimension(:), intent(in) :: x0
+            real*8, dimension(:), intent(inout) :: delta
+            real*8, intent(in), optional :: itol, ifac
+            integer, intent(in), optional :: ikmax
+            interface
+                function f(x)
+                    real*8, dimension(:), intent(in) :: x
+                    real*8 :: f
+                endfunction
+            endinterface
+            real*8 :: eps, fac
+            real*8, allocatable :: x_k(:), x_prev(:), x_next(:)
+            integer :: k, kmax
+            logical :: flag = .true.
+
+            eps = 1.d-5; fac = 0.5d0; kmax = 5000
+
+            if (present(itol)) eps = itol
+            if (present(ifac)) fac = ifac 
+            if (present(ikmax)) kmax = ikmax
+
+            if (size(x0).ne.size(delta)) stop "Error: Reductor vector must be same size than x0"
+            if (minval(delta).lt.0.d0) stop "Error: All reductor values must be positive"
+            if (norm2(delta).lt.eps) stop "Error: Provided reductor is too small"
+            if (fac.ge.1.d0) stop "Error: Contraction factor must be lower than 1.0"
+
+            allocate(x_k(size(x0))); x_k = x0
+            allocate(x_prev(size(x0))); allocate(x_next(size(x0)));
+
+            k = 0
+            do while (k.le.kmax)
+                x_prev = x_k
+                !print*
+                !print*, "-----------------------------------------"
+                !print*, "k =", k
+                !print*, "x =", x_k
+                !print*, "f(x) =", f(x_k)
+                !print*
+                200 call exploreHJ(x_k,delta,f,flag)
+                if (flag .eqv. .true.) then 
+                    goto 400 
+                else
+                    goto 300
+                endif
+                300 if (norm2(delta).lt.eps) then 
+                        exit
+                    else
+                        delta = fac*delta
+                        goto 200
+                    endif
+                400 k = k + 1
+                x_next = x_k + (x_k - x_prev)
+                !x_k = x_next
+                call exploreHJ(x_next,delta,f,flag)
+                if (f(x_next).lt.f(x_k)) then 
+                    goto 400
+                else
+                    goto 300
+                endif
+
+                !print*
+                !print*, "x_k =", x_k
+                !print*, "x_prev =", x_prev
+                !print*, "x_k - x_prev =", x_k - x_prev
+                !print*
+            enddo
+
+            print*, "****** End unconstrained Hooke and Jeeves method ******"
+            print*, "Iterations =", k 
+            print*, "x_min =", x_k 
+            print*, "f(x_min) =", f(x_k)
+
+        endsubroutine
 endmodule
