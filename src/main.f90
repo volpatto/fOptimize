@@ -19,6 +19,6 @@ program main
     call unconstHookeJeeves(xin,delta,fHimmelblau,idfile=1)
 
     xin(1) = -1.2d0; xin(2) = 1.d0
-    call unconstMultidim(xin,mId,fRosenbrock,gRosenbrock,hRosenbrock,phiRosenbrock,imethod=4,iomega=0.5d0,ifac=.true.,idfile=1)
+    call unconstMultidim(xin,mId,fRosenbrock,gRosenbrock,hRosenbrock,phiRosenbrock,imethod=4,iomega=0.5d0,ifac=.true.,idfile=2)
 
 endprogram

@@ -7,3 +7,9 @@
 # Compiled objects
 *.o
 *.obj
+# Data files
+*.dat
+# Temp files
+*~
+*.swp
+*.swo
