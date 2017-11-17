@@ -660,6 +660,8 @@ module mOptimize
 200         x_prev = x_k
             call exploreHJ(x_k,delta,f,flag)
             if (flag .eqv. .true.) then 
+                kHJ = kHJ + 1
+                if (present(idfile)) write(idfile,*) kHJ, x_k, f(x_k)
                 goto 400 
             else
                 goto 300
