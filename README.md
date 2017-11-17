@@ -28,5 +28,5 @@ It is important to say that, except for the derivative-free methods, the remaind
 One can find futher information about the above methods in Classical Optimization books like Luenberger, Nocedal, Bazaraa
 and so on. I based my implementations in Luenberger and Bazaraa books. Also, I recommend Introduction To Derivative-Free Optimization (Andrew Conn et al.). 
 
-## Contact
-Diego T. Volpatto: volpatto@lncc.br
+## About me and contact
+My name is Diego Volpatto. Currently, I'm a DSc student at National Laboratory for Scientific Computing (LNCC, Petrópolis/Brazil). You can contact me sending an email to volpatto@lncc.br.
