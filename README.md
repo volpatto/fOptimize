@@ -24,7 +24,7 @@ The routines has only academic purpose. Further applications will need improveme
   + Hooke & Jeeves
   
 One can find futher information about the above methods in Classical Optimization books like Luenberger, Nocedal, Bazaraa
-and so on.
+and so on. I based my implementations in Luenberger and Bazaraa books. Also, I recommend Introduction To Derivative-Free Optimization (Andrew Conn et al.). 
 
 ## Contact
 Diego T. Volpatto: volpatto@lncc.br
