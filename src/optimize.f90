@@ -2,6 +2,8 @@ module mOptimize
 
     implicit none
 
+    private :: exploreHJ, biss_phi
+
     contains
 
         subroutine biss_1d(f,a,b,itol,ikmax,imode,id)
@@ -135,7 +137,6 @@ module mOptimize
             enddo
 
             if (k.ge.kmax) stop "biss_phi nao convergiu"
-            !print*, "k =", k, "x_opt =", (a_k+b_k)/2.d0, "f(x_opt) =", f(x_k+(a_k+b_k)/2.d0*d_k)
             lamb = (a_k+b_k)/2.d0
 
             if (present(id)) close(id)
@@ -332,7 +333,7 @@ module mOptimize
 
         endsubroutine
 
-        subroutine unconstMultidim(x0,B0,f,gf,hf,phif,imethod,iomega,ieps,ifac)
+        subroutine unconstMultidim(x0,B0,f,gf,hf,phif,imethod,iomega,ieps,ifac,idfile)
 
             use mUtilities
             use msolver
@@ -341,7 +342,7 @@ module mOptimize
 
             real*8, dimension(:), intent(in) :: x0
             real*8, dimension(:,:), intent(in) :: B0
-            integer, intent(in), optional :: imethod
+            integer, intent(in), optional :: imethod, idfile
             real*8, intent(in), optional :: iomega, ieps
             logical, intent(in), optional :: ifac
             interface
@@ -368,6 +369,7 @@ module mOptimize
             real*8 :: lambda_k, eps, rho_bfgs, omega, fac_scale
             real*8, parameter :: llambda = 0.d0, rlambda=2.d1
             integer :: kmax = 1000, k, method
+            character(len=50) :: filename, fname, char_id
 
             ! Standard optional input values
             eps = 1.d-5; method = 0; omega = 0.5d0; fac_scale = 1.d0
@@ -379,7 +381,24 @@ module mOptimize
             if (present(iomega).and.present(imethod).and.(method.eq.4).and.(omega.gt.1.d0 .or. omega.lt.0.d0)) then
                 print*, "Invalid Broyden combination: Combination must be convex."; stop
             endif
+            if (present(imethod).and.(method.lt.0 .or. method.gt.4)) then
+                print*, "Invalid method input option."; stop
+            endif
         
+            if (present(idfile)) then
+                ! Opening solution output file
+                ! Making an id char variable
+                write(char_id, '(i0)') idfile
+                if (method.eq.1) write(filename, '(a)') "mnewton"
+                if (method.eq.2) write(filename, '(a)') "mdfp"
+                if (method.eq.3) write(filename, '(a)') "mbfgs"
+                if (method.eq.4) write(filename, '(a)') "mdfp_bfgs"
+                ! Concatenate strings filename, char_id and ".dat"
+                fname = trim(filename)//trim(char_id)//".dat"
+                ! Opening file with unit as id and file name as attributed in fname
+                open(unit=idfile,file=fname)
+            endif
+
             allocate(d_k(size(x0))); allocate(xprev(size(x0))); xprev = x0
             allocate(xnext(size(x0))); allocate(Bmat(size(x0),size(x0)))
             allocate(p_k(size(x0))); allocate(q_k(size(x0)))
@@ -392,6 +411,7 @@ module mOptimize
             Id = matId(size(x0));
             Bmat = B0
             k = 0
+            if (present(idfile)) write(idfile,*) k, xprev, f(xprev)
 
             ! Newton
             if (method.eq.1) then
@@ -402,6 +422,7 @@ module mOptimize
                 xnext = xprev + lambda_k*d_k
                 xprev = xnext
                 k = k + 1
+                if (present(idfile)) write(idfile,*) k, xprev, f(xprev)
             enddo
             ! DFP
             else if (method.eq.2) then
@@ -416,6 +437,7 @@ module mOptimize
                     - fac_scale*matmul(matmul(Bmat,dyadic_prod(q_k,q_k)),Bmat)*(1.d0/dot_product(q_k,matmul(Bmat,q_k)))
                 xprev = xnext
                 k = k + 1
+                if (present(idfile)) write(idfile,*) k, xprev, f(xprev)
             enddo
             ! BFGS
             else if (method.eq.3) then
@@ -431,6 +453,7 @@ module mOptimize
                     + rho_bfgs*dyadic_prod(p_k,p_k)
                 xprev = xnext
                 k = k + 1
+                if (present(idfile)) write(idfile,*) k, xprev, f(xprev)
             enddo
             ! DFP + BFGS
             else if (method.eq.4) then
@@ -449,6 +472,7 @@ module mOptimize
                 Bmat = omega*Bbfgs + (1.d0-omega)*Bdfp
                 xprev = xnext
                 k = k + 1
+                if (present(idfile)) write(idfile,*) k, xprev, f(xprev)
             enddo
             ! Gradient
             else
@@ -458,6 +482,7 @@ module mOptimize
                 xnext = xprev + lambda_k*d_k
                 xprev = xnext
                 k = k + 1
+                if (present(idfile)) write(idfile,*) k, xprev, f(xprev)
             enddo
             endif
 
@@ -466,16 +491,18 @@ module mOptimize
             print*, "x_min =", xprev 
             print*, "f(x_min) =", f(xprev)
 
+            if (present(idfile)) close(idfile)
+
         endsubroutine
 
-        subroutine unconstBox(x0,delta,f,itol,ifac,ikmax)
+        subroutine unconstBox(x0,delta,f,itol,ifac,ikmax,idfile)
 
             implicit none
 
             real*8, dimension(:), intent(in) :: x0
             real*8, dimension(:), intent(inout) :: delta
             real*8, intent(in), optional :: itol, ifac
-            integer, intent(in), optional :: ikmax
+            integer, intent(in), optional :: ikmax, idfile
             interface
                 function f(x)
                     real*8, dimension(:), intent(in) :: x
@@ -484,13 +511,24 @@ module mOptimize
             endinterface
             real*8 :: eps, f_min, f_temp, fac
             real*8, allocatable :: x_k(:), x_temp(:), x_next(:)
-            integer :: i, j, k, kmax
+            integer :: i, j, k, kmax, kbox
+            character(len=50) :: filename, fname, char_id
 
             eps = 1.d-5; fac = 0.8d0; kmax = 5000
 
             if (present(itol)) eps = itol
             if (present(ifac)) fac = ifac 
             if (present(ikmax)) kmax = ikmax
+            if (present(idfile)) then
+                ! Opening solution output file
+                ! Making an id char variable
+                write(char_id, '(i0)') idfile
+                write(filename, '(a)') "mbox"
+                ! Concatenate strings filename, char_id and ".dat"
+                fname = trim(filename)//trim(char_id)//".dat"
+                ! Opening file with unit as id and file name as attributed in fname
+                open(unit=idfile,file=fname)
+            endif
 
             if (size(x0).ne.size(delta)) stop "Error: Reductor vector must be same size than x0"
             if (minval(delta).lt.0.d0) stop "Error: All reductor values must be positive"
@@ -500,8 +538,9 @@ module mOptimize
             allocate(x_k(size(x0))); x_k = x0
             allocate(x_temp(size(x0))); allocate(x_next(size(x0)));
 
-            k = 0
+            k = 0; kbox = 0
             f_min = f(x_k)
+            if (present(idfile)) write(idfile,*) kbox, x_k, f(x_k)
             do while ((norm2(delta).gt.eps).and.(k.le.kmax))
                 do i=1,size(delta)
                     do j=1,2
@@ -517,15 +556,19 @@ module mOptimize
                 if (all(x_k.eq.x_next)) then
                     delta = fac*delta
                 else
+                    kbox = kbox + 1
                     x_k = x_next
+                    if (present(idfile)) write(idfile,*) kbox, x_k, f(x_k)
                 endif
                 k = k + 1
             enddo
 
             print*, "****** End unconstrained Box method ******"
-            print*, "Iterations =", k 
+            print*, "Iterations =", kbox 
             print*, "x_min =", x_k 
             print*, "f(x_min) =", f(x_k)
+
+            if (present(idfile)) close(idfile)
 
         endsubroutine
 
@@ -568,14 +611,14 @@ module mOptimize
 
         endsubroutine
 
-        subroutine unconstHookeJeeves(x0,delta,f,itol,ifac,ikmax)
+        subroutine unconstHookeJeeves(x0,delta,f,itol,ifac,ikmax,idfile)
 
             implicit none
 
             real*8, dimension(:), intent(in) :: x0
             real*8, dimension(:), intent(inout) :: delta
             real*8, intent(in), optional :: itol, ifac
-            integer, intent(in), optional :: ikmax
+            integer, intent(in), optional :: ikmax, idfile
             interface
                 function f(x)
                     real*8, dimension(:), intent(in) :: x
@@ -584,14 +627,25 @@ module mOptimize
             endinterface
             real*8 :: eps, fac
             real*8, allocatable :: x_k(:), x_prev(:), x_next(:)
-            integer :: k, kmax
+            integer :: k, kmax, kHJ
             logical :: flag = .true.
+            character(len=50) :: filename, fname, char_id
 
             eps = 1.d-5; fac = 0.5d0; kmax = 5000
 
             if (present(itol)) eps = itol
             if (present(ifac)) fac = ifac 
             if (present(ikmax)) kmax = ikmax
+            if (present(idfile)) then
+                ! Opening solution output file
+                ! Making an id char variable
+                write(char_id, '(i0)') idfile
+                write(filename, '(a)') "mHJ"
+                ! Concatenate strings filename, char_id and ".dat"
+                fname = trim(filename)//trim(char_id)//".dat"
+                ! Opening file with unit as id and file name as attributed in fname
+                open(unit=idfile,file=fname)
+            endif
 
             if (size(x0).ne.size(delta)) stop "Error: Reductor vector must be same size than x0"
             if (minval(delta).lt.0.d0) stop "Error: All reductor values must be positive"
@@ -601,36 +655,42 @@ module mOptimize
             allocate(x_k(size(x0))); x_k = x0
             allocate(x_prev(size(x0))); allocate(x_next(size(x0)));
 
-            k = 0
-            200 x_prev = x_k
+            k = 0; kHJ = 0
+            if (present(idfile)) write(idfile,*) kHJ, x_k, f(x_k)
+200         x_prev = x_k
             call exploreHJ(x_k,delta,f,flag)
             if (flag .eqv. .true.) then 
                 goto 400 
             else
                 goto 300
             endif
-            300 if (norm2(delta).lt.eps) then
-                    goto 700
-                else
-                    delta = fac*delta
-                    goto 200
-                endif
-            400 k = k + 1
+300         if (norm2(delta).lt.eps) then
+                goto 700
+            else
+                delta = fac*delta
+                goto 200
+            endif
+400         k = k + 1
             if (k.gt.kmax) goto 700
             x_next = x_k + (x_k - x_prev)
             call exploreHJ(x_next,delta,f,flag)
             if (f(x_next).lt.f(x_k)) then
                 x_prev = x_k
                 x_k = x_next
+                kHJ = kHJ + 1
+                if (present(idfile)) write(idfile,*) kHJ, x_k, f(x_k)
                 goto 400
             else
                 goto 300
             endif
 
 700         print*, "****** End unconstrained Hooke and Jeeves method ******"
-            print*, "Iterations =", k 
+            print*, "Iterations =", kHJ 
             print*, "x_min =", x_k 
             print*, "f(x_min) =", f(x_k)
 
+            if (present(idfile)) close(idfile)
+
         endsubroutine
+
 endmodule
