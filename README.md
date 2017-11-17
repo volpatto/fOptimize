@@ -9,7 +9,7 @@ The routines has only academic purpose. Further applications will need improveme
 ## Features
 
 * One-dimensional optimization methods:
-  + Bissection
+  + Bisection
   + Golden Ratio
   + Newton
   + Secant
@@ -22,6 +22,8 @@ The routines has only academic purpose. Further applications will need improveme
   + Self-scaling Broyden family (DFP+BFGS)
   + Box Method (Direct coordinate search)
   + Hooke & Jeeves
+
+It is important to say that, except for the derivative-free methods, the remainder methods do exact linear search with Bisection method.
   
 One can find futher information about the above methods in Classical Optimization books like Luenberger, Nocedal, Bazaraa
 and so on. I based my implementations in Luenberger and Bazaraa books. Also, I recommend Introduction To Derivative-Free Optimization (Andrew Conn et al.). 
