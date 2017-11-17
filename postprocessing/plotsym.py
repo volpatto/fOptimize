@@ -10,9 +10,10 @@ plt.rc('text',usetex=True)
 x, y = sp.symbols('x y')
 #fun = x**2 + y**2
 #fun = (1.0/2.0)*x**2.0 + (1.0/4.0)*y**4.0 - (1.0/2.0)*y**2.0
-fun = (x-y**2)*(x-(1/2)*y**2)
+#fun = (x-y**2)*(x-(1/2)*y**2)
+fun = (x**2 + y - 11)**2 + (x + y**2 -7)**2
 numfun = sp.lambdify([x, y], fun)
-xx, yy = np.linspace(-10,10,200), np.linspace(-10,10,200)
+xx, yy = np.linspace(-5,5,200), np.linspace(-5,5,200)
 X, Y = np.meshgrid(xx,yy)
 Zfun = numfun(X,Y)
 
@@ -28,7 +29,7 @@ clb.ax.set_title(r'$f(x_1,x_2)$')
 plt.savefig('surf.eps')
 
 plt.figure()
-CS = plt.contour(X, Y, Zfun, 8, colors='k')
+CS = plt.contour(X, Y, Zfun, 15, colors='k')
 plt.clabel(CS, CS.levels, inline=True, inline_spacing=3, rightside_up=True, fontsize=8,fmt='%1.2f')
 PC = plt.pcolor(X, Y, Zfun, cmap=cm.coolwarm)
 clb = plt.colorbar(PC,shrink=0.5,aspect=5)

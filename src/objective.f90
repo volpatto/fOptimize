@@ -139,4 +139,15 @@ module mObjective
 
         endfunction
 
+        function fHimmelblau(x)
+            
+            implicit none
+
+            real*8, dimension(:), intent(in) :: x
+            real*8 :: fHimmelblau
+
+            fHimmelblau = (x(1)**2.d0 + x(2) - 11.d0)**2.d0 + (x(1) + x(2)**2.d0 -7.d0)**2.d0
+
+        endfunction
+
 endmodule
