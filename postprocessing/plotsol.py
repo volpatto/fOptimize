@@ -8,9 +8,11 @@ from matplotlib import rc
 import sys
 plt.rc('text',usetex=True)
 
+'''
 filename = sys.argv[1]
 data = np.genfromtxt(filename)
 xsol, ysol = data[:,1], data[:,2]
+'''
 
 x, y = sp.symbols('x y')
 #fun = x**2 + y**2
@@ -19,8 +21,8 @@ x, y = sp.symbols('x y')
 #fun = (x**2 + y - 11)**2 + (x + y**2 -7)**2 # Himmelblau
 fun = 100*(y-x**2)**2 + (x-1)**2 # Rosenbrock
 numfun = sp.lambdify([x, y], fun)
-inf = -1.5
-sup = 3.0
+inf = -5.0
+sup = 5.0
 npoints = 200
 xx, yy = np.linspace(inf,sup,npoints), np.linspace(inf,sup,npoints)
 X, Y = np.meshgrid(xx,yy)
@@ -35,7 +37,7 @@ ax.set_zlabel(r'$f(x_1,x_2)$')
 clb = fig.colorbar(surf,shrink=0.5,aspect=5)
 clb.ax.set_title(r'$f(x_1,x_2)$')
 #ax.view_init(azim=-70, elev=10)
-plt.savefig('surf.eps')
+plt.savefig('surf.pdf')
 
 plt.figure()
 CS = plt.contour(X, Y, Zfun, 15, colors='k')
@@ -46,10 +48,12 @@ clb.ax.set_title(r'$f(x_1,x_2)$')
 plt.xlabel(r'$x_1$')
 plt.ylabel(r'$x_2$')
 
+'''
 plt.plot(xsol, ysol, 'k', zorder=1, lw=1.5)
 plt.scatter(xsol, ysol, s=20, color='k', zorder=2)
 plt.xlim((inf,sup))
 plt.ylim((inf,sup))
+'''
 plt.axes().set_aspect('equal')
 #plt.plot(xsol,ysol,"-.",color='k')
-plt.savefig('contour.eps')
+plt.savefig('contour.pdf')

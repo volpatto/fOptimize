@@ -412,7 +412,7 @@ module mOptimize
             Id = matId(size(x0));
             Bmat = B0
             k = 0
-            if (present(idfile)) write(idfile,*) k, xprev, f(xprev), gf(xprev)
+            if (present(idfile)) write(idfile,*) k, xprev, f(xprev), norm2(gf(xprev))
 
             ! Newton
             if (method.eq.1) then
@@ -423,7 +423,7 @@ module mOptimize
                 xnext = xprev + lambda_k*d_k
                 xprev = xnext
                 k = k + 1
-                if (present(idfile)) write(idfile,*) k, xprev, f(xprev), gf(xprev)
+                if (present(idfile)) write(idfile,*) k, xprev, f(xprev), norm2(gf(xprev))
             enddo
             ! DFP
             else if (method.eq.2) then
@@ -438,7 +438,7 @@ module mOptimize
                     - fac_scale*matmul(matmul(Bmat,dyadic_prod(q_k,q_k)),Bmat)*(1.d0/dot_product(q_k,matmul(Bmat,q_k)))
                 xprev = xnext
                 k = k + 1
-                if (present(idfile)) write(idfile,*) k, xprev, f(xprev), gf(xprev)
+                if (present(idfile)) write(idfile,*) k, xprev, f(xprev), norm2(gf(xprev))
             enddo
             ! BFGS
             else if (method.eq.3) then
@@ -454,7 +454,7 @@ module mOptimize
                     + rho_bfgs*dyadic_prod(p_k,p_k)
                 xprev = xnext
                 k = k + 1
-                if (present(idfile)) write(idfile,*) k, xprev, f(xprev), gf(xprev)
+                if (present(idfile)) write(idfile,*) k, xprev, f(xprev), norm2(gf(xprev))
             enddo
             ! DFP + BFGS
             else if (method.eq.4) then
@@ -473,7 +473,7 @@ module mOptimize
                 Bmat = omega*Bbfgs + (1.d0-omega)*Bdfp
                 xprev = xnext
                 k = k + 1
-                if (present(idfile)) write(idfile,*) k, xprev, f(xprev), gf(xprev)
+                if (present(idfile)) write(idfile,*) k, xprev, f(xprev), norm2(gf(xprev))
             enddo
             ! Gradient
             else
@@ -483,7 +483,7 @@ module mOptimize
                 xnext = xprev + lambda_k*d_k
                 xprev = xnext
                 k = k + 1
-                if (present(idfile)) write(idfile,*) k, xprev, f(xprev), gf(xprev)
+                if (present(idfile)) write(idfile,*) k, xprev, f(xprev), norm2(gf(xprev))
             enddo
             endif
 

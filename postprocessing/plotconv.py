@@ -63,12 +63,12 @@ data = np.genfromtxt(filename)
 x, y = data[:,0], data[:,3]
 #plt.xlim(xmin=1,xmax=20)
 plt.plot(x,y,'-o',label='sDFP/sBFGS')
-
 ###################################################
+
 plt.grid(True)
 plt.xlabel(r'Iterations')
 plt.ylabel(r'$f(x_1,x_2)$')
 plt.legend(loc='best',borderpad=0.5)
 plt.xlim(xmin=1,xmax=15)
-plt.ylim(ymin=-0.1,ymax=0.25)
-plt.savefig('plotconv.eps')
+plt.ylim(ymin=-0.1,ymax=10)
+plt.savefig('plotconv.pdf')
