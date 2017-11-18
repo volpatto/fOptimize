@@ -539,7 +539,7 @@ module mOptimize
             allocate(x_k(size(x0))); x_k = x0
             allocate(x_temp(size(x0))); allocate(x_next(size(x0)));
 
-            k = 0; kbox = 0
+            k = 0; kbox = 0; x_next = x_k
             f_min = f(x_k)
             if (present(idfile)) write(idfile,*) kbox, x_k, f(x_k)
             do while ((norm2(delta).gt.eps).and.(k.le.kmax))
